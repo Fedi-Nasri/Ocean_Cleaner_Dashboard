@@ -2,7 +2,15 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Check, RotateCw, AlertTriangle, Clock } from "lucide-react";
+import { Check, RotateCw, AlertTriangle, Clock, Signal, Zap } from "lucide-react";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 
 type StatusCardProps = {
   missionStartTime?: Date;
@@ -39,7 +47,15 @@ const StatusCard = ({ missionStartTime = new Date() }: StatusCardProps) => {
       name: "Sensors", 
       status: "operational", 
       icon: <Check className="h-4 w-4" />,
-      color: "text-green-500 bg-green-50"
+      color: "text-green-500 bg-green-50",
+      hasDropdown: true,
+      details: [
+        { name: "Temperature Sensor", status: "operational", health: 100 },
+        { name: "Water Quality Sensor", status: "operational", health: 98 },
+        { name: "Pressure Sensor", status: "caution", health: 75 },
+        { name: "GPS Sensor", status: "operational", health: 95 },
+        { name: "Motion Sensor", status: "operational", health: 92 }
+      ]
     },
     { 
       name: "Communication", 
@@ -52,6 +68,18 @@ const StatusCard = ({ missionStartTime = new Date() }: StatusCardProps) => {
       status: "caution", 
       icon: <AlertTriangle className="h-4 w-4" />,
       color: "text-amber-500 bg-amber-50"
+    },
+    { 
+      name: "Signal Strength", 
+      status: "85%", 
+      icon: <Signal className="h-4 w-4" />,
+      color: "text-green-500 bg-green-50"
+    },
+    { 
+      name: "Latency", 
+      status: "42ms", 
+      icon: <Zap className="h-4 w-4" />,
+      color: "text-ocean-500 bg-ocean-50"
     },
   ];
   
@@ -81,10 +109,55 @@ const StatusCard = ({ missionStartTime = new Date() }: StatusCardProps) => {
             {statuses.map((item, index) => (
               <div key={index} className="flex justify-between items-center">
                 <span className="text-sm">{item.name}</span>
-                <Badge variant="outline" className={`${item.color} flex items-center gap-1.5 px-2 py-0.5 capitalize`}>
-                  {item.icon}
-                  {item.status}
-                </Badge>
+                {item.hasDropdown ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className={`${item.color} flex items-center gap-1.5 px-2 py-0.5 capitalize h-auto`}>
+                        {item.icon}
+                        {item.status}
+                        {item.details?.some(d => d.status === "caution" || d.status === "critical") && (
+                          <AlertTriangle className="h-3 w-3 text-amber-500 ml-1" />
+                        )}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-64">
+                      <div className="px-3 py-2 text-xs font-medium text-muted-foreground">Sensors Status</div>
+                      {item.details?.map((sensor, i) => (
+                        <DropdownMenuItem key={i} className="p-2 focus:bg-transparent cursor-default">
+                          <div className="w-full space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm">{sensor.name}</span>
+                              <Badge variant="outline" className={
+                                sensor.status === "operational" 
+                                  ? "bg-green-50 text-green-700" 
+                                  : sensor.status === "caution" 
+                                  ? "bg-amber-50 text-amber-700 flex items-center gap-1" 
+                                  : "bg-red-50 text-red-700 flex items-center gap-1"
+                              }>
+                                {sensor.status === "caution" && <AlertTriangle className="h-3 w-3" />}
+                                {sensor.status}
+                              </Badge>
+                            </div>
+                            <Progress 
+                              value={sensor.health} 
+                              className="h-1.5" 
+                              indicatorClassName={
+                                sensor.health > 80 ? "bg-green-500" :
+                                sensor.health > 50 ? "bg-amber-500" : 
+                                "bg-red-500"
+                              }
+                            />
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Badge variant="outline" className={`${item.color} flex items-center gap-1.5 px-2 py-0.5 capitalize`}>
+                    {item.icon}
+                    {item.status}
+                  </Badge>
+                )}
               </div>
             ))}
           </div>

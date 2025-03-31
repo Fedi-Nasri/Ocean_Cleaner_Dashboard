@@ -17,7 +17,7 @@ export function DashboardSidebar() {
     <Sidebar>
       <SidebarHeader className="flex items-center px-4 py-2">
         <Waves className="h-6 w-6 text-ocean-600 mr-2" />
-        <span className="font-semibold text-ocean-800">OceanClean</span>
+        <span className="font-semibold text-ocean-800 group-data-[collapsible=icon]:hidden">OceanClean</span>
         <SidebarTrigger className="ml-auto" />
       </SidebarHeader>
       
@@ -64,7 +64,7 @@ export function DashboardSidebar() {
       <SidebarFooter className="p-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
           <Info className="h-4 w-4" />
-          <span>Robot Version: v1.2.3</span>
+          <span className="group-data-[collapsible=icon]:hidden">Robot Version: v1.2.3</span>
         </div>
       </SidebarFooter>
     </Sidebar>

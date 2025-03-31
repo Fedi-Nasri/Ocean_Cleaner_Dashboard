@@ -21,6 +21,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/manual-control" element={<ManualControl />} />
           <Route path="/statistics" element={<Statistics />} />
+          <Route path="/settings" element={<NotFound />} /> {/* Placeholder for Settings page */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
