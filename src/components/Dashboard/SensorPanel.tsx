@@ -1,14 +1,26 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Thermometer, Droplets, Battery, Wind, BarChart3 } from "lucide-react";
+import { Thermometer, Droplets, Battery, Wind, BarChart3, ChevronDown } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 // Mock data - would be replaced with real-time data from an API
 const mockSensorData = {
   temperature: 18.5,
   waterQuality: 92,
   batteryLevel: 78,
+  batteryCells: [
+    { id: 1, level: 81, voltage: 3.7 },
+    { id: 2, level: 79, voltage: 3.6 },
+    { id: 3, level: 75, voltage: 3.5 },
+  ],
   speed: 2.3,
   depth: 5.2,
   wasteCollected: 12.4,
@@ -20,10 +32,20 @@ const SensorPanel = () => {
   // Simulate real-time updates
   useEffect(() => {
     const interval = setInterval(() => {
+      const updatedBatteryCells = sensorData.batteryCells.map(cell => ({
+        ...cell,
+        level: Math.max(0, Math.min(100, cell.level - (Math.random() * 0.2))),
+        voltage: Math.max(3.2, Math.min(4.2, cell.voltage - (Math.random() * 0.01))),
+      }));
+      
+      // Calculate average battery level from cells
+      const avgBatteryLevel = updatedBatteryCells.reduce((acc, cell) => acc + cell.level, 0) / updatedBatteryCells.length;
+      
       setSensorData({
         temperature: Math.max(15, Math.min(22, sensorData.temperature + (Math.random() - 0.5))),
         waterQuality: Math.max(70, Math.min(99, sensorData.waterQuality + (Math.random() - 0.5) * 2)),
-        batteryLevel: Math.max(0, Math.min(100, sensorData.batteryLevel - Math.random() * 0.2)),
+        batteryLevel: avgBatteryLevel,
+        batteryCells: updatedBatteryCells,
         speed: Math.max(0, Math.min(5, sensorData.speed + (Math.random() - 0.5) * 0.3)),
         depth: Math.max(1, Math.min(10, sensorData.depth + (Math.random() - 0.5) * 0.2)),
         wasteCollected: sensorData.wasteCollected + Math.random() * 0.05,
@@ -37,6 +59,12 @@ const SensorPanel = () => {
     if (level > 60) return "text-green-500";
     if (level > 30) return "text-amber-500";
     return "text-red-500";
+  };
+  
+  const getBatteryProgressColor = (level: number) => {
+    if (level > 60) return "bg-green-500";
+    if (level > 30) return "bg-amber-500";
+    return "bg-red-500";
   };
   
   return (
@@ -91,7 +119,32 @@ const SensorPanel = () => {
               <Battery className={`h-4 w-4 mr-2 ${getBatteryColor(sensorData.batteryLevel)}`} />
               Battery Level
             </span>
-            <span className="sensor-value text-lg">{sensorData.batteryLevel.toFixed(0)}%</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-6 px-1 sensor-value hover:bg-transparent">
+                  <span className="text-lg mr-1">{sensorData.batteryLevel.toFixed(0)}%</span>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <div className="px-3 py-2 text-xs font-medium text-muted-foreground">Battery Cells</div>
+                {sensorData.batteryCells.map((cell) => (
+                  <DropdownMenuItem key={cell.id} className="p-2 focus:bg-transparent cursor-default">
+                    <div className="w-full space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Cell {cell.id}</span>
+                        <span className="text-sm font-medium">{cell.level.toFixed(0)}% ({cell.voltage.toFixed(1)}V)</span>
+                      </div>
+                      <Progress 
+                        value={cell.level} 
+                        className="h-1.5" 
+                        indicatorClassName={getBatteryProgressColor(cell.level)}
+                      />
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -101,6 +154,7 @@ const SensorPanel = () => {
               sensorData.batteryLevel > 60 ? "bg-green-100" : 
               sensorData.batteryLevel > 30 ? "bg-amber-100" : "bg-red-100"
             }`} 
+            indicatorClassName={getBatteryProgressColor(sensorData.batteryLevel)}
           />
           <div className="flex justify-between mt-1 text-xs text-muted-foreground">
             <span>0%</span>
