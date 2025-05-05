@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useRef } from "react";
-import { MapContainer, TileLayer, Polygon, Marker, Popup, FeatureGroup, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, Polygon, Marker, Popup, FeatureGroup } from "react-leaflet";
 import { EditControl } from "react-leaflet-draw";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

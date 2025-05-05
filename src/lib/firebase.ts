@@ -4,14 +4,13 @@ import { getDatabase } from "firebase/database";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  // Replace with your Firebase config
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  databaseURL: "YOUR_DATABASE_URL",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDemoKeyForTesting123456789",
+  authDomain: "demo-ocean-cleaner.firebaseapp.com",
+  databaseURL: "https://demo-ocean-cleaner-default-rtdb.firebaseio.com",
+  projectId: "demo-ocean-cleaner",
+  storageBucket: "demo-ocean-cleaner.appspot.com",
+  messagingSenderId: "123456789012",
+  appId: "1:123456789012:web:abcdef1234567890abcdef"
 };
 
 // Initialize Firebase
