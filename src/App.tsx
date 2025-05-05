@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import ManualControl from "./pages/ManualControl";
 import Statistics from "./pages/Statistics";
 import Maps from "./pages/Maps";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,7 +24,7 @@ const App = () => (
           <Route path="/manual-control" element={<ManualControl />} />
           <Route path="/statistics" element={<Statistics />} />
           <Route path="/maps" element={<Maps />} />
-          <Route path="/settings" element={<NotFound />} /> {/* Placeholder for Settings page */}
+          <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

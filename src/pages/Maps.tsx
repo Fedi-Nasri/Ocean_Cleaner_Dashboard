@@ -1,7 +1,5 @@
-
 import { useState, useEffect, useRef } from "react";
-import { MapContainer, TileLayer, Polygon, Marker, Popup, FeatureGroup } from "react-leaflet";
-import { EditControl } from "react-leaflet-draw";
+import { MapContainer, TileLayer, Polygon, Marker, Popup, FeatureGroup, useMap } from "react-leaflet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +18,7 @@ import "leaflet-draw/dist/leaflet.draw.css";
 import L from "leaflet";
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
+import "leaflet-draw";
 
 let DefaultIcon = L.icon({
   iconUrl: icon,
@@ -30,6 +29,65 @@ let DefaultIcon = L.icon({
 
 L.Marker.prototype.options.icon = DefaultIcon;
 
+// Custom EditControl component that uses Leaflet Draw directly
+const DrawTools = ({ onCreate, onDelete }) => {
+  const map = useMap();
+  const featureGroupRef = useRef<L.FeatureGroup | null>(null);
+  
+  useEffect(() => {
+    if (!map) return;
+    
+    // Initialize FeatureGroup for the editable layers
+    const featureGroup = new L.FeatureGroup();
+    map.addLayer(featureGroup);
+    featureGroupRef.current = featureGroup;
+    
+    // Initialize the draw control and pass it the FeatureGroup
+    const drawControl = new L.Control.Draw({
+      edit: {
+        featureGroup: featureGroup,
+        poly: {
+          allowIntersection: false
+        },
+      },
+      draw: {
+        rectangle: false,
+        circle: false,
+        circlemarker: false,
+        marker: false,
+        polyline: false,
+        polygon: {
+          allowIntersection: false,
+          showArea: true
+        }
+      }
+    });
+    map.addControl(drawControl);
+    
+    // Handle draw created event
+    map.on(L.Draw.Event.CREATED, (e: any) => {
+      const layer = e.layer;
+      featureGroup.addLayer(layer);
+      if (onCreate) onCreate(e);
+    });
+    
+    // Handle draw deleted event
+    map.on(L.Draw.Event.DELETED, (e: any) => {
+      if (onDelete) onDelete(e);
+    });
+    
+    return () => {
+      map.off(L.Draw.Event.CREATED);
+      map.off(L.Draw.Event.DELETED);
+      map.removeControl(drawControl);
+      map.removeLayer(featureGroup);
+    };
+  }, [map, onCreate, onDelete]);
+  
+  return null;
+};
+
+// Rest of the file with MapSidebar and Maps components
 const MapSidebar = ({ 
   maps, 
   selectedMap, 
@@ -121,6 +179,7 @@ const Maps = () => {
   const [currentMap, setCurrentMap] = useState<MapData | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [mapName, setMapName] = useState("");
+  
   const featureGroupRef = useRef<L.FeatureGroup>(null);
   
   useEffect(() => {
@@ -320,20 +379,10 @@ const Maps = () => {
                   />
                   
                   {isEditing && (
-                    <FeatureGroup ref={featureGroupRef}>
-                      <EditControl
-                        position="topright"
-                        onCreated={handleAreaCreated}
-                        onDeleted={handleAreaDeleted}
-                        draw={{
-                          rectangle: false,
-                          circle: false,
-                          circlemarker: false,
-                          marker: false,
-                          polyline: false
-                        }}
-                      />
-                    </FeatureGroup>
+                    <DrawTools 
+                      onCreate={handleAreaCreated} 
+                      onDelete={handleAreaDeleted} 
+                    />
                   )}
                   
                   {currentMap && currentMap.areas.map((area) => (
