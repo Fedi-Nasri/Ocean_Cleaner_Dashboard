@@ -1,64 +1,52 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Map as MapIcon, Navigation, Locate } from "lucide-react";
+import { MapIcon, Navigation, Locate } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { listenToRobotPosition } from "@/services/mapService";
+import "leaflet/dist/leaflet.css";
+
+// Fix Leaflet icon issues
+import L from "leaflet";
+import icon from "leaflet/dist/images/marker-icon.png";
+import iconShadow from "leaflet/dist/images/marker-shadow.png";
+
+let DefaultIcon = L.icon({
+  iconUrl: icon,
+  shadowUrl: iconShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+
+L.Marker.prototype.options.icon = DefaultIcon;
 
 const Map = () => {
   const mapRef = useRef<HTMLDivElement>(null);
   const [mapApiKey, setMapApiKey] = useState<string>("");
-  const [showApiKeyInput, setShowApiKeyInput] = useState<boolean>(true);
-  
-  // Mock robot GPS coordinates - this would normally come from the robot's API
+  const [showApiKeyInput, setShowApiKeyInput] = useState<boolean>(false);
   const [robotLocation, setRobotLocation] = useState({
     lat: 25.774,
     lng: -80.19,
   });
   
-  // Simulate robot movement
+  // Listen to robot position updates from Firebase
   useEffect(() => {
-    if (!showApiKeyInput && mapApiKey) {
-      const interval = setInterval(() => {
-        setRobotLocation(prev => ({
-          lat: prev.lat + (Math.random() - 0.5) * 0.001,
-          lng: prev.lng + (Math.random() - 0.5) * 0.001
-        }));
-      }, 5000);
+    if (!showApiKeyInput) {
+      const unsubscribe = listenToRobotPosition((position) => {
+        if (position) {
+          setRobotLocation({
+            lat: position[0],
+            lng: position[1]
+          });
+        }
+      });
       
-      return () => clearInterval(interval);
+      return () => {
+        unsubscribe();
+      };
     }
-  }, [showApiKeyInput, mapApiKey]);
-  
-  // Initialize or update map when API key is set
-  useEffect(() => {
-    if (!showApiKeyInput && mapApiKey && mapRef.current) {
-      // This is a placeholder for actual map integration
-      // In a real application, you would initialize a map library here
-      
-      // For example, to initialize a map with Mapbox:
-      // mapboxgl.accessToken = mapApiKey;
-      // const map = new mapboxgl.Map({
-      //   container: mapRef.current,
-      //   style: 'mapbox://styles/mapbox/satellite-v9',
-      //   center: [robotLocation.lng, robotLocation.lat],
-      //   zoom: 13
-      // });
-      
-      // For now, we'll just show a message in the map container
-      mapRef.current.innerHTML = `
-        <div class="absolute inset-0 flex items-center justify-center bg-ocean-50 rounded-md">
-          <div class="text-center p-4">
-            <p class="text-ocean-800 mb-2">Map initialized with API key: ${mapApiKey.substring(0, 6)}...</p>
-            <p class="text-sm text-ocean-600">Robot coordinates: ${robotLocation.lat.toFixed(6)}, ${robotLocation.lng.toFixed(6)}</p>
-            <div class="mt-4 p-3 bg-white rounded-md shadow-sm">
-              <p class="text-xs text-gray-500">In a real implementation, this would display an interactive map showing the robot's location.</p>
-              <p class="text-xs text-gray-400 mt-1">You can use libraries like Mapbox, Google Maps, or Leaflet.</p>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-  }, [showApiKeyInput, mapApiKey, robotLocation]);
+  }, [showApiKeyInput]);
   
   const handleApiKeySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,8 +106,23 @@ const Map = () => {
             </div>
           </div>
         ) : (
-          <div ref={mapRef} className="w-full h-full min-h-[300px] rounded-b-lg relative">
-            {/* Map will be initialized here */}
+          <div className="w-full h-full min-h-[300px] rounded-b-lg relative">
+            <MapContainer 
+              center={[robotLocation.lat, robotLocation.lng]} 
+              zoom={13} 
+              style={{ height: "100%", width: "100%" }}
+              className="rounded-b-lg"
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <Marker position={[robotLocation.lat, robotLocation.lng]}>
+                <Popup>
+                  Robot is here
+                </Popup>
+              </Marker>
+            </MapContainer>
           </div>
         )}
       </CardContent>

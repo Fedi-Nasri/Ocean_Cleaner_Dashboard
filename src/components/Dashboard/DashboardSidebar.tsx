@@ -10,7 +10,7 @@ import {
   SidebarFooter
 } from "@/components/ui/sidebar";
 import { Link } from "react-router-dom";
-import { Waves, Home, Gamepad2, BarChart, Settings, Info } from "lucide-react";
+import { Waves, Home, Gamepad2, BarChart, Settings, Info, MapPin } from "lucide-react";
 
 export function DashboardSidebar() {
   return (
@@ -46,6 +46,15 @@ export function DashboardSidebar() {
               <Link to="/statistics">
                 <BarChart />
                 <span>Statistics</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Maps & Navigation">
+              <Link to="/maps">
+                <MapPin />
+                <span>Maps & Navigation</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
