@@ -9,6 +9,8 @@ import { useMapOperations } from "@/hooks/useMapOperations";
 // Import Leaflet CSS and initialize configuration
 import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css";
+// Make sure to import leaflet-draw explicitly
+import "leaflet-draw";
 import "../components/Maps/LeafletConfig";
 
 const Maps = () => {

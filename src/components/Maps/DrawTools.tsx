@@ -3,6 +3,8 @@ import { useEffect, useRef } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet-draw/dist/leaflet.draw.css";
+// Ensure we properly import leaflet-draw
+import "leaflet-draw";
 
 // This is needed to fix TypeScript types for leaflet-draw
 declare module "leaflet" {
@@ -65,46 +67,51 @@ const DrawTools = ({ onCreate, onDelete }: DrawToolsProps) => {
     map.addLayer(featureGroup);
     featureGroupRef.current = featureGroup;
     
-    // Initialize the draw control and pass it the FeatureGroup
-    const drawControl = new L.Control.Draw({
-      edit: {
-        featureGroup: featureGroup,
-        poly: {
-          allowIntersection: false
+    // Ensure that L.Control.Draw is available
+    if (L.Control.Draw) {
+      // Initialize the draw control and pass it the FeatureGroup
+      const drawControl = new L.Control.Draw({
+        edit: {
+          featureGroup: featureGroup,
+          poly: {
+            allowIntersection: false
+          },
         },
-      },
-      draw: {
-        rectangle: false,
-        circle: false,
-        circlemarker: false,
-        marker: false,
-        polyline: false,
-        polygon: {
-          allowIntersection: false,
-          showArea: true
+        draw: {
+          rectangle: false,
+          circle: false,
+          circlemarker: false,
+          marker: false,
+          polyline: false,
+          polygon: {
+            allowIntersection: false,
+            showArea: true
+          }
         }
-      }
-    });
-    map.addControl(drawControl);
-    
-    // Handle draw created event
-    map.on(L.Draw.Event.CREATED, (e: any) => {
-      const layer = e.layer;
-      featureGroup.addLayer(layer);
-      if (onCreate) onCreate(e);
-    });
-    
-    // Handle draw deleted event
-    map.on(L.Draw.Event.DELETED, (e: any) => {
-      if (onDelete) onDelete(e);
-    });
-    
-    return () => {
-      map.off(L.Draw.Event.CREATED);
-      map.off(L.Draw.Event.DELETED);
-      map.removeControl(drawControl);
-      map.removeLayer(featureGroup);
-    };
+      });
+      map.addControl(drawControl);
+      
+      // Handle draw created event
+      map.on(L.Draw.Event.CREATED, (e: any) => {
+        const layer = e.layer;
+        featureGroup.addLayer(layer);
+        if (onCreate) onCreate(e);
+      });
+      
+      // Handle draw deleted event
+      map.on(L.Draw.Event.DELETED, (e: any) => {
+        if (onDelete) onDelete(e);
+      });
+      
+      return () => {
+        map.off(L.Draw.Event.CREATED);
+        map.off(L.Draw.Event.DELETED);
+        map.removeControl(drawControl);
+        map.removeLayer(featureGroup);
+      };
+    } else {
+      console.error("L.Control.Draw is not available. Check if leaflet-draw is properly imported.");
+    }
   }, [map, onCreate, onDelete]);
   
   return null;
