@@ -85,7 +85,27 @@ const DrawTools = ({ onCreate, onDelete }: DrawToolsProps) => {
           polyline: false,
           polygon: {
             allowIntersection: false,
-            showArea: true
+            showArea: true,
+            // Add these options to allow for more flexible polygon creation
+            showLength: true,
+            metric: true,
+            feet: false,
+            nautic: false,
+            precision: {
+              km: 2,
+              m: 2,
+              cm: 2,
+              mi: 2,
+              ft: 2,
+              inch: 2,
+              yd: 2,
+              nauticalMile: 2
+            },
+            // This is important - it was defaulting to 3 vertices
+            repeatMode: false,
+            // Remove any restrictions on number of points
+            minVertexCount: 3, // Minimum needed for a polygon
+            maxVertexCount: Infinity // Allow unlimited vertices
           }
         }
       });
