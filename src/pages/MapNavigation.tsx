@@ -1,43 +1,40 @@
 
+import { useState, useEffect } from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/Dashboard/DashboardSidebar";
-import MapSidebar from "@/components/Maps/MapSidebar";
-import MapHeader from "@/components/Maps/MapHeader";
-import MapContent from "@/components/Maps/MapContent";
-import { useMapOperations } from "@/hooks/useMapOperations";
+import MapView from "@/components/MapNavigation/MapView";
+import MapSidebar from "@/components/MapNavigation/MapSidebar";
+import MapHeader from "@/components/MapNavigation/MapHeader";
+import { useMapNavigation } from "@/hooks/useMapNavigation";
 
-// Import Leaflet CSS and initialize configuration
+// Import Leaflet CSS
 import "leaflet/dist/leaflet.css";
-import "leaflet-draw/dist/leaflet.draw.css";
-// Make sure to import leaflet-draw explicitly
-import "leaflet-draw";
-import "../components/Maps/LeafletConfig";
+import "leaflet-draw/dist/leaflet.css";
 
-const Maps = () => {
+const MapNavigation = () => {
   const {
     maps,
     selectedMapId,
     currentMap,
     isEditing,
     mapName,
-    setSelectedMapId,
     setMapName,
-    setIsEditing,
+    setSelectedMapId,
     handleCreateMap,
     handleDeleteMap,
+    handleAreaCreated,
     handleEditMap,
     handleSaveMap,
     handleCancelEdit,
-    handleAreaCreated,
-    handleAreaDeleted
-  } = useMapOperations();
-  
+    setIsEditing
+  } = useMapNavigation();
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <DashboardSidebar />
         <SidebarInset className="bg-gradient-to-br from-ocean-50/50 to-white">
-          <div className="flex flex-col min-h-screen">
+          <div className="flex flex-col h-screen">
             <MapHeader
               isEditing={isEditing}
               mapName={mapName}
@@ -48,12 +45,11 @@ const Maps = () => {
               setIsEditing={setIsEditing}
             />
             
-            <main className="flex-grow flex overflow-hidden">
-              <MapContent
+            <div className="flex-grow flex overflow-hidden">
+              <MapView
                 isEditing={isEditing}
                 currentMap={currentMap}
                 handleAreaCreated={handleAreaCreated}
-                handleAreaDeleted={handleAreaDeleted}
               />
               
               <MapSidebar
@@ -64,7 +60,7 @@ const Maps = () => {
                 onDeleteMap={handleDeleteMap}
                 onEditMap={handleEditMap}
               />
-            </main>
+            </div>
           </div>
         </SidebarInset>
       </div>
@@ -72,4 +68,4 @@ const Maps = () => {
   );
 };
 
-export default Maps;
+export default MapNavigation;

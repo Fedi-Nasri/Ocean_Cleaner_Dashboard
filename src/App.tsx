@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import ManualControl from "./pages/ManualControl";
 import Statistics from "./pages/Statistics";
-import Maps from "./pages/Maps";
+import MapNavigation from "./pages/MapNavigation";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -23,7 +23,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/manual-control" element={<ManualControl />} />
           <Route path="/statistics" element={<Statistics />} />
-          <Route path="/maps" element={<Maps />} />
+          <Route path="/maps" element={<MapNavigation />} />
           <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

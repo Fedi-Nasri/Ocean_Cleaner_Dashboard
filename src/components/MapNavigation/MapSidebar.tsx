@@ -1,11 +1,11 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapIcon, Plus, Edit, Trash2 } from "lucide-react";
-import { MapData } from "@/services/mapService";
+import { Map, Plus, Edit, Trash2, Layers } from "lucide-react";
+import { NavigationMap } from "@/hooks/useMapNavigation";
 
 interface MapSidebarProps {
-  maps: MapData[];
+  maps: NavigationMap[];
   selectedMap: string | null;
   onMapSelect: (id: string) => void;
   onCreateMap: () => void;
@@ -25,7 +25,7 @@ const MapSidebar = ({
     <div className="w-72 border-l border-ocean-100 bg-white h-full overflow-auto">
       <div className="p-4 border-b border-ocean-100">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-ocean-800">Saved Maps</h2>
+          <h2 className="text-lg font-semibold text-ocean-800">Map Library</h2>
           <Button onClick={onCreateMap} size="sm" className="bg-ocean-600 hover:bg-ocean-700">
             <Plus className="h-4 w-4 mr-1" />
             New Map
@@ -36,7 +36,7 @@ const MapSidebar = ({
       <div className="p-4 space-y-3">
         {maps.length === 0 ? (
           <div className="text-center text-muted-foreground py-8">
-            <MapIcon className="mx-auto h-10 w-10 mb-2 text-ocean-300" />
+            <Map className="mx-auto h-10 w-10 mb-2 text-ocean-300" />
             <p>No maps created yet</p>
             <p className="text-xs">Click "New Map" to create one</p>
           </div>
@@ -51,9 +51,10 @@ const MapSidebar = ({
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-medium">{map.name}</h3>
-                    <p className="text-xs text-muted-foreground">
+                    <div className="flex items-center text-xs text-muted-foreground mt-1">
+                      <Layers className="h-3 w-3 mr-1" />
                       {map.areas.length} area{map.areas.length !== 1 ? 's' : ''}
-                    </p>
+                    </div>
                   </div>
                   
                   <div className="flex space-x-1">

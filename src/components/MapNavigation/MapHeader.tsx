@@ -1,32 +1,33 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MapIcon, Edit } from "lucide-react";
+import { Map, Edit } from "lucide-react";
+import { NavigationMap } from "@/hooks/useMapNavigation";
 
 interface MapHeaderProps {
   isEditing: boolean;
   mapName: string;
-  currentMap: any;
+  currentMap: NavigationMap | null;
   setMapName: (name: string) => void;
   handleSaveMap: () => void;
   handleCancelEdit: () => void;
   setIsEditing: (isEditing: boolean) => void;
 }
 
-const MapHeader = ({ 
-  isEditing, 
-  mapName, 
-  currentMap, 
-  setMapName, 
-  handleSaveMap, 
-  handleCancelEdit, 
-  setIsEditing 
+const MapHeader = ({
+  isEditing,
+  mapName,
+  currentMap,
+  setMapName,
+  handleSaveMap,
+  handleCancelEdit,
+  setIsEditing
 }: MapHeaderProps) => {
   return (
     <header className="bg-white border-b border-ocean-100 py-4 px-6">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <h1 className="text-2xl font-bold text-ocean-800 flex items-center">
-          <MapIcon className="mr-2 h-6 w-6 text-ocean-600" />
+          <Map className="mr-2 h-6 w-6 text-ocean-600" />
           Maps & Navigation
         </h1>
         
@@ -39,7 +40,7 @@ const MapHeader = ({
               className="w-64"
             />
             <Button onClick={handleSaveMap} className="bg-ocean-600 hover:bg-ocean-700">
-              Save
+              Save Map
             </Button>
             <Button variant="outline" onClick={handleCancelEdit}>
               Cancel
