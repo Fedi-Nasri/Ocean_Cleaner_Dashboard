@@ -1,8 +1,9 @@
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Polygon, Popup } from "react-leaflet";
 import { NavigationMap, MapArea } from "@/hooks/useMapNavigation";
 import DrawTools from "./DrawTools";
+import L from "leaflet";
 
 interface MapViewProps {
   isEditing: boolean;
@@ -12,24 +13,28 @@ interface MapViewProps {
 
 const MapView = ({ isEditing, currentMap, handleAreaCreated }: MapViewProps) => {
   // Default to a central location if no map is selected
-  const defaultCenter = [51.505, -0.09];
+  const defaultCenter: [number, number] = [51.505, -0.09];
   const mapRef = useRef<L.Map>(null);
   
   // Set the map view to fit all areas when the map changes
   useEffect(() => {
     if (currentMap && currentMap.areas.length > 0 && mapRef.current) {
       try {
-        const bounds: L.LatLngBoundsExpression = [];
+        const allPoints: L.LatLngExpression[] = [];
         currentMap.areas.forEach(area => {
           area.coordinates.forEach(polygon => {
             polygon.forEach(coord => {
-              bounds.push([coord[0], coord[1]]);
+              // Make sure each coordinate is a valid LatLng tuple [number, number]
+              if (coord.length === 2) {
+                allPoints.push([coord[0], coord[1]] as [number, number]);
+              }
             });
           });
         });
         
-        if (bounds.length > 0) {
-          mapRef.current.fitBounds(bounds as L.LatLngBoundsLiteral[]);
+        if (allPoints.length > 0) {
+          const bounds = L.latLngBounds(allPoints);
+          mapRef.current.fitBounds(bounds);
         }
       } catch (error) {
         console.error("Error fitting map to bounds:", error);
@@ -60,7 +65,7 @@ const MapView = ({ isEditing, currentMap, handleAreaCreated }: MapViewProps) => 
           area.coordinates.map((polygon, polygonIndex) => (
             <Polygon 
               key={`${area.id}-${polygonIndex}`}
-              positions={polygon}
+              positions={polygon as [number, number][]}
               pathOptions={{ 
                 color: '#0EA5E9', 
                 fillColor: '#0EA5E9', 

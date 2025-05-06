@@ -159,7 +159,11 @@ export const useMapNavigation = () => {
     if (!currentMap || !isEditing) return;
     
     const layer = areaData.layer;
-    const coordinates = layer.getLatLngs()[0].map((latLng: any) => [latLng.lat, latLng.lng]);
+    
+    // Ensure we get an array of [lat, lng] tuples
+    const coordinates = layer.getLatLngs()[0].map((latLng: any): [number, number] => 
+      [latLng.lat, latLng.lng]
+    );
     
     const newArea: MapArea = {
       id: uuidv4(),

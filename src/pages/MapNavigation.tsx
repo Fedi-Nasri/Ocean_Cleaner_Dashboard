@@ -9,7 +9,8 @@ import { useMapNavigation } from "@/hooks/useMapNavigation";
 
 // Import Leaflet CSS
 import "leaflet/dist/leaflet.css";
-import "leaflet-draw/dist/leaflet.css";
+// Import Leaflet Draw CSS directly from node_modules
+import "../assets/leaflet-draw.css";
 
 const MapNavigation = () => {
   const {
