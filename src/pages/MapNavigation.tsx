@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Send } from "lucide-react";
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarInset } from "@/components/ui/sidebar";
 import MapHeader from "@/components/MapNavigation/MapHeader";
+import { DashboardSidebar } from "@/components/Dashboard/DashboardSidebar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 // import { database } from "@/lib/firebase";
 // import { ref, push, set } from "firebase/database";
 
@@ -30,6 +32,7 @@ const MapNavigation = () => {
   const [selectedAreas, setSelectedAreas] = useState<any[]>([]);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [mapName, setMapName] = useState<string>("New Map");
+  const [showDetails, setShowDetails] = useState<boolean>(false);
 
   // Override the default polygon style to use a darker blue
   const drawOptions = {
@@ -83,7 +86,7 @@ const MapNavigation = () => {
 
     console.log("Map data ready to be sent:", mapData);
 
-    // Commented Firebase code that would send the data
+    // Firebase code that would send the data (commented as requested)
     /* 
     // Create a reference to the maps collection
     const mapsRef = ref(database, 'maps');
@@ -110,79 +113,109 @@ const MapNavigation = () => {
     setIsEditing(false);
   };
 
-  return (
-    <SidebarProvider>
-      <div className="flex min-h-screen">
-        <Sidebar>
-          <SidebarHeader>
-            <h2 className="text-lg font-semibold text-ocean-800 px-2 py-1">Map Navigation</h2>
-          </SidebarHeader>
-          <SidebarContent>
-            <div className="p-2">
-              <Button 
-                onClick={handleSendMap} 
-                className="w-full bg-ocean-600 hover:bg-ocean-700 mb-4"
-              >
-                <Send className="mr-2 h-4 w-4" />
-                Send Map
-              </Button>
-              
-              {selectedAreas.length > 0 && (
-                <div className="mt-4 p-4 bg-gray-50 rounded-md">
-                  <h3 className="font-medium mb-2">Selected Areas:</h3>
-                  <p className="text-sm text-gray-600">
-                    {selectedAreas.length} area{selectedAreas.length !== 1 && 's'} selected
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="mt-2 w-full" 
-                    onClick={() => console.log(JSON.stringify(selectedAreas, null, 2))}
-                  >
-                    View Details
-                  </Button>
-                </div>
-              )}
-            </div>
-          </SidebarContent>
-        </Sidebar>
+  const toggleDetails = () => {
+    setShowDetails(!showDetails);
+  };
 
-        <SidebarInset>
-          <MapHeader 
-            isEditing={isEditing} 
-            mapName={mapName} 
-            currentMap={selectedAreas.length > 0 ? { name: mapName } : null} 
-            setMapName={setMapName}
-            handleSaveMap={handleSaveMap}
-            handleCancelEdit={handleCancelEdit}
-            setIsEditing={setIsEditing}
-          />
-          
-          <div className="p-4">
-            <div className="h-[calc(100vh-10rem)] border border-gray-300 rounded-lg overflow-hidden">
-              <MapContainer
-                center={[51.505, -0.09]}
-                zoom={13}
-                style={{ height: "100%", width: "100%" }}
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                
-                <FeatureGroup>
-                  <EditControl
-                    position="topright"
-                    onCreated={handleCreated}
-                    draw={drawOptions}
+  return (
+    <div className="flex min-h-screen">
+      {/* Dashboard sidebar - now always visible */}
+      <DashboardSidebar />
+      
+      <SidebarProvider>
+        <div className="flex flex-1 min-h-screen">
+          <SidebarInset className="flex-1">
+            <MapHeader 
+              isEditing={isEditing} 
+              mapName={mapName} 
+              currentMap={selectedAreas.length > 0 ? { name: mapName } : null} 
+              setMapName={setMapName}
+              handleSaveMap={handleSaveMap}
+              handleCancelEdit={handleCancelEdit}
+              setIsEditing={setIsEditing}
+            />
+            
+            <div className="p-4">
+              <div className="h-[calc(100vh-10rem)] border border-gray-300 rounded-lg overflow-hidden">
+                <MapContainer
+                  center={[51.505, -0.09]}
+                  zoom={13}
+                  style={{ height: "100%", width: "100%" }}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   />
-                </FeatureGroup>
-              </MapContainer>
+                  
+                  <FeatureGroup>
+                    <EditControl
+                      position="topright"
+                      onCreated={handleCreated}
+                      draw={drawOptions}
+                    />
+                  </FeatureGroup>
+                </MapContainer>
+              </div>
             </div>
-          </div>
-        </SidebarInset>
-      </div>
-    </SidebarProvider>
+          </SidebarInset>
+
+          {/* Sidebar now on the right side */}
+          <Sidebar side="right">
+            <SidebarHeader>
+              <h2 className="text-lg font-semibold text-ocean-800 px-2 py-1">Map Navigation</h2>
+            </SidebarHeader>
+            <SidebarContent>
+              <div className="p-2">
+                <Button 
+                  onClick={handleSendMap} 
+                  className="w-full bg-ocean-600 hover:bg-ocean-700 mb-4"
+                >
+                  <Send className="mr-2 h-4 w-4" />
+                  Send Map
+                </Button>
+                
+                {selectedAreas.length > 0 && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-md">
+                    <h3 className="font-medium mb-2">Selected Areas:</h3>
+                    <p className="text-sm text-gray-600">
+                      {selectedAreas.length} area{selectedAreas.length !== 1 && 's'} selected
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-2 w-full" 
+                      onClick={toggleDetails}
+                    >
+                      View Details
+                    </Button>
+                    
+                    {/* Area details section - shown when "View Details" is clicked */}
+                    {showDetails && (
+                      <div className="mt-4">
+                        {selectedAreas.map((coordinates, index) => (
+                          <Card key={index} className="mt-2 bg-white">
+                            <CardHeader className="p-3">
+                              <CardTitle className="text-sm">Area {index + 1}</CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-3 pt-0">
+                              <div className="text-xs max-h-32 overflow-y-auto">
+                                <p className="font-mono">
+                                  {JSON.stringify(coordinates, null, 2)}
+                                </p>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </SidebarContent>
+          </Sidebar>
+        </div>
+      </SidebarProvider>
+    </div>
   );
 };
 
