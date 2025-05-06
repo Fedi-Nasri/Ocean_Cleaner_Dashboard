@@ -26,7 +26,15 @@ const MapSidebar = ({
       <div className="p-4 border-b border-ocean-100">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-ocean-800">Map Library</h2>
-          <Button onClick={onCreateMap} size="sm" className="bg-ocean-600 hover:bg-ocean-700">
+          <Button 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onCreateMap();
+            }} 
+            size="sm" 
+            className="bg-ocean-600 hover:bg-ocean-700"
+          >
             <Plus className="h-4 w-4 mr-1" />
             New Map
           </Button>

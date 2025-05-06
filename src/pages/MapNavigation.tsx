@@ -29,6 +29,8 @@ const MapNavigation = () => {
     handleCancelEdit,
     setIsEditing
   } = useMapNavigation();
+  
+  console.log("MapNavigation render, handleCreateMap:", !!handleCreateMap);
 
   return (
     <SidebarProvider>

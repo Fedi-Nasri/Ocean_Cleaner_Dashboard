@@ -68,6 +68,7 @@ export const useMapNavigation = () => {
   
   // Create a new map
   const handleCreateMap = useCallback(() => {
+    console.log("handleCreateMap called");
     const newMapId = uuidv4();
     const newMap: NavigationMap = {
       id: newMapId,
@@ -79,6 +80,7 @@ export const useMapNavigation = () => {
     const mapRef = ref(database, `navigationMaps/${newMapId}`);
     set(mapRef, newMap)
       .then(() => {
+        console.log("New map created with ID:", newMapId);
         setSelectedMapId(newMapId);
         setIsEditing(true);
         setMapName("New Map");
