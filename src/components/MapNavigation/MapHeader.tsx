@@ -2,12 +2,11 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Map, Edit } from "lucide-react";
-import { NavigationMap } from "@/hooks/useMapNavigation";
 
 interface MapHeaderProps {
   isEditing: boolean;
   mapName: string;
-  currentMap: NavigationMap | null;
+  currentMap: any | null;
   setMapName: (name: string) => void;
   handleSaveMap: () => void;
   handleCancelEdit: () => void;
