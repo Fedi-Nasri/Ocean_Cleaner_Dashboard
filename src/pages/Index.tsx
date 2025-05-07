@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Dashboard/Header";
@@ -27,6 +26,12 @@ const Index = () => {
     
     return () => clearTimeout(timer);
   }, []);
+  
+  // Define the missing handleModeSwitch function
+  const handleModeSwitch = () => {
+    toast.info("Switching to manual control mode");
+    navigate("/manual-control");
+  };
   
   if (isLoading) {
     return (
@@ -82,4 +87,3 @@ const Index = () => {
 };
 
 export default Index;
-
