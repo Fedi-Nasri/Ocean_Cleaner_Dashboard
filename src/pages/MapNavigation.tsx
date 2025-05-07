@@ -118,12 +118,12 @@ const MapNavigation = () => {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen w-full">
       {/* Dashboard sidebar - now always visible */}
       <DashboardSidebar />
       
       <div className="flex flex-1 min-h-screen">
-        <SidebarInset className="flex-1">
+        <SidebarInset className="flex-1 flex flex-col">
           <MapHeader 
             isEditing={isEditing} 
             mapName={mapName} 
@@ -134,12 +134,13 @@ const MapNavigation = () => {
             setIsEditing={setIsEditing}
           />
           
-          <div className="p-4">
-            <div className="h-[calc(100vh-10rem)] border border-gray-300 rounded-lg overflow-hidden">
+          <div className="p-4 flex-1">
+            <div className="h-full border border-gray-300 rounded-lg overflow-hidden">
               <MapContainer
                 center={[51.505, -0.09]}
                 zoom={13}
                 style={{ height: "100%", width: "100%" }}
+                className="h-[calc(100vh-10rem)]"
               >
                 <TileLayer
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -185,7 +186,7 @@ const MapNavigation = () => {
                     className="mt-2 w-full" 
                     onClick={toggleDetails}
                   >
-                    View Details
+                    {showDetails ? "Hide Details" : "View Details"}
                   </Button>
                   
                   {/* Area details section - shown when "View Details" is clicked */}
@@ -218,3 +219,4 @@ const MapNavigation = () => {
 };
 
 export default MapNavigation;
+
