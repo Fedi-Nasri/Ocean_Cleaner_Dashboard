@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Dashboard/Header";
@@ -27,7 +28,7 @@ const Index = () => {
     return () => clearTimeout(timer);
   }, []);
   
-  // Define the missing handleModeSwitch function
+  // Define the handleModeSwitch function
   const handleModeSwitch = () => {
     toast.info("Switching to manual control mode");
     navigate("/manual-control");
@@ -36,10 +37,12 @@ const Index = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-ocean-50 to-white">
-        <div className="flex flex-col items-center justify-center">
-          <Waves className="h-12 w-12 text-ocean-500 animate-pulse mb-4" />
-          <h1 className="text-2xl font-semibold text-ocean-800 mb-2">OceanClean Dashboard</h1>
-          <p className="text-ocean-600">Connecting to robot systems...</p>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="flex flex-col items-center justify-center text-center">
+            <Waves className="h-16 w-16 text-ocean-500 animate-pulse mb-6" />
+            <h1 className="text-3xl font-bold text-ocean-800 mb-4">OceanClean Dashboard</h1>
+            <p className="text-lg text-ocean-600">Connecting to robot systems...</p>
+          </div>
         </div>
       </div>
     );
