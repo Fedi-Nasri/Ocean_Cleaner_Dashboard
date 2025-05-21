@@ -78,24 +78,26 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-ocean-50 to-white p-4">
-      <div className="max-w-md w-full">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-ocean-50 to-white">
+      <div className="w-full max-w-md px-4">
         <div className="flex flex-col items-center mb-8">
-          <Waves className="h-16 w-16 text-ocean-600 mb-4" />
+          <div className="bg-ocean-100 rounded-full p-4 mb-4">
+            <Waves className="h-12 w-12 text-ocean-600" />
+          </div>
           <h1 className="text-3xl font-bold text-ocean-800">OceanClean</h1>
-          <p className="text-ocean-600">Robot Monitoring System</p>
+          <p className="text-ocean-600 mt-1">Robot Monitoring System</p>
         </div>
         
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle className="text-center">Login to Dashboard</CardTitle>
+        <Card className="w-full shadow-lg border-ocean-100">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-center text-2xl">Login</CardTitle>
             <CardDescription className="text-center">
               Enter your credentials to access the system
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                 <FormField
                   control={form.control}
                   name="username"
@@ -143,7 +145,7 @@ const Login = () => {
                 
                 <Button 
                   type="submit" 
-                  className="w-full bg-ocean-600 hover:bg-ocean-700"
+                  className="w-full bg-ocean-600 hover:bg-ocean-700 py-5"
                   disabled={isLoading}
                 >
                   {isLoading ? "Authenticating..." : "Login"}
@@ -151,7 +153,7 @@ const Login = () => {
               </form>
             </Form>
           </CardContent>
-          <CardFooter className="flex justify-center">
+          <CardFooter className="flex justify-center pt-0">
             <p className="text-sm text-muted-foreground">
               OceanClean Monitoring System | © {new Date().getFullYear()}
             </p>
