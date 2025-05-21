@@ -10,8 +10,8 @@ import { Sidebar, SidebarContent, SidebarHeader, SidebarInset } from "@/componen
 import MapHeader from "@/components/MapNavigation/MapHeader";
 import { DashboardSidebar } from "@/components/Dashboard/DashboardSidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// import { database } from "@/lib/firebase";
-// import { ref, push, set } from "firebase/database";
+import { database } from "@/lib/firebase";
+import { ref, push, set } from "firebase/database";
 
 // Fix Leaflet icon issue
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -54,10 +54,10 @@ const MapNavigation = () => {
     const { layerType, layer } = e;
     
     if (layerType === 'polygon') {
-      const coordinates = layer.getLatLngs()[0].map((latlng: L.LatLng) => [
-        latlng.lat,
-        latlng.lng,
-      ]);
+      const coordinates = layer.getLatLngs()[0].map((latlng: L.LatLng) => ({
+        lat: latlng.lat,
+        long: latlng.lng
+    }));
       
       console.log('Selected Area Coordinates:', coordinates);
       setSelectedAreas([...selectedAreas, coordinates]);
@@ -72,27 +72,19 @@ const MapNavigation = () => {
 
     // Prepare the data to be sent
     const mapData = {
-      id: crypto.randomUUID(),
       name: mapName,
-      areas: selectedAreas.map((coordinates, index) => ({
-        id: crypto.randomUUID(),
-        name: `Area ${index + 1}`,
-        coordinates,
-        createdAt: Date.now()
-      })),
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      coordinates: selectedAreas[0], // Assuming you want to send only the first selected area
     };
 
     console.log("Map data ready to be sent:", mapData);
 
     // Firebase code that would send the data (commented as requested)
-    /* 
-    // Create a reference to the maps collection
-    const mapsRef = ref(database, 'maps');
-    // Generate a new unique ID for this map
-    const newMapRef = push(mapsRef);
-    // Set the data under this new ID
-    set(newMapRef, mapData)
+
+    // Create a reference to the map name directly
+    const mapRef = ref(database, `navigation/Maps/${mapName}`);
+    // Set the data under the map name
+    set(mapRef, mapData)
       .then(() => {
         console.log("Map data successfully sent to Firebase!");
         // Reset the form or provide user feedback here
@@ -100,8 +92,9 @@ const MapNavigation = () => {
       .catch((error) => {
         console.error("Error sending map data to Firebase:", error);
       });
-    */
+
   };
+
 
   const handleCancelEdit = () => {
     setIsEditing(false);
