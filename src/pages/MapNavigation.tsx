@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { MapContainer, TileLayer, FeatureGroup } from "react-leaflet";
 import { EditControl } from "react-leaflet-draw";
@@ -219,4 +218,3 @@ const MapNavigation = () => {
 };
 
 export default MapNavigation;
-

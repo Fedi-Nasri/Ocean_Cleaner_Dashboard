@@ -5,12 +5,12 @@ import { MapIcon, Navigation, Locate } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { listenToRobotPosition } from "@/services/mapService";
-import "leaflet/dist/leaflet.css";
 
 // Fix Leaflet icon issues
 import L from "leaflet";
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
+import "leaflet/dist/leaflet.css";
 
 let DefaultIcon = L.icon({
   iconUrl: icon,
