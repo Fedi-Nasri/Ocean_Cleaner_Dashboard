@@ -78,26 +78,43 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-ocean-50 to-white">
-      <div className="w-full max-w-md px-4">
-        <div className="flex flex-col items-center mb-8">
-          <div className="bg-ocean-100 rounded-full p-4 mb-4">
-            <Waves className="h-12 w-12 text-ocean-600" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-ocean-50 to-white p-4">
+      <div className="flex max-w-4xl w-full rounded-xl overflow-hidden shadow-2xl bg-white">
+        {/* Left side - Ocean image */}
+        <div className="hidden md:block w-1/2 relative">
+          <img 
+            src="https://images.unsplash.com/photo-1531297484001-80022131f5a1" 
+            alt="Ocean technology" 
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-ocean-600/30 backdrop-blur-sm flex items-center justify-center">
+            <div className="text-white text-center p-6">
+              <h2 className="text-3xl font-bold mb-2">OceanClean</h2>
+              <p className="text-lg">Advanced Robot Monitoring System</p>
+            </div>
           </div>
-          <h1 className="text-3xl font-bold text-ocean-800">OceanClean</h1>
-          <p className="text-ocean-600 mt-1">Robot Monitoring System</p>
         </div>
         
-        <Card className="w-full shadow-lg border-ocean-100">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-center text-2xl">Login</CardTitle>
+        {/* Right side - Login form */}
+        <div className="w-full md:w-1/2 px-8 py-10">
+          <div className="flex flex-col items-center mb-6">
+            <div className="bg-ocean-100 rounded-full p-3 mb-3">
+              <Waves className="h-10 w-10 text-ocean-600" />
+            </div>
+            <h1 className="text-2xl font-bold text-ocean-800">OceanClean</h1>
+            <p className="text-ocean-600 text-sm">Robot Monitoring System</p>
+          </div>
+          
+          <CardHeader className="px-0 pb-2">
+            <CardTitle className="text-center text-xl">Welcome Back</CardTitle>
             <CardDescription className="text-center">
               Enter your credentials to access the system
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          
+          <CardContent className="px-0">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
                   name="username"
@@ -145,7 +162,7 @@ const Login = () => {
                 
                 <Button 
                   type="submit" 
-                  className="w-full bg-ocean-600 hover:bg-ocean-700 py-5"
+                  className="w-full bg-ocean-600 hover:bg-ocean-700 py-5 mt-2"
                   disabled={isLoading}
                 >
                   {isLoading ? "Authenticating..." : "Login"}
@@ -153,12 +170,13 @@ const Login = () => {
               </form>
             </Form>
           </CardContent>
-          <CardFooter className="flex justify-center pt-0">
-            <p className="text-sm text-muted-foreground">
+          
+          <CardFooter className="flex justify-center pt-4 px-0">
+            <p className="text-xs text-muted-foreground">
               OceanClean Monitoring System | © {new Date().getFullYear()}
             </p>
           </CardFooter>
-        </Card>
+        </div>
       </div>
     </div>
   );
