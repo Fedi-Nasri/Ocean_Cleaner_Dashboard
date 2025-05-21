@@ -6,18 +6,20 @@ import SensorPanel from "@/components/Dashboard/SensorPanel";
 import VideoFeed from "@/components/Dashboard/VideoFeed";
 import Map from "@/components/Dashboard/Map";
 import StatusCard from "@/components/Dashboard/StatusCard";
-import { Waves, Gamepad2 } from "lucide-react";
+import { Waves, Gamepad2, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { 
   SidebarInset
 } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/Dashboard/DashboardSidebar";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
   const [missionStartTime] = useState(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const { auth, logout } = useAuth();
   
   // Simulate loading state
   useEffect(() => {
@@ -32,6 +34,13 @@ const Index = () => {
   const handleModeSwitch = () => {
     toast.info("Switching to manual control mode");
     navigate("/manual-control");
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    logout();
+    toast.info("You have been logged out");
+    navigate("/login");
   };
   
   if (isLoading) {
@@ -57,11 +66,24 @@ const Index = () => {
           
           <main className="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full">
             <div className="mb-4 flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-ocean-800">Autonomous Mode</h2>
-              <Button onClick={handleModeSwitch} className="bg-ocean-600 hover:bg-ocean-700">
-                <Gamepad2 className="mr-2 h-4 w-4" />
-                Switch to Manual Control
-              </Button>
+              <div>
+                <h2 className="text-xl font-semibold text-ocean-800">Autonomous Mode</h2>
+                {auth.role && (
+                  <p className="text-sm text-ocean-600">
+                    Logged in as: {auth.username} ({auth.role})
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleModeSwitch} className="bg-ocean-600 hover:bg-ocean-700">
+                  <Gamepad2 className="mr-2 h-4 w-4" />
+                  Switch to Manual Control
+                </Button>
+                <Button onClick={handleLogout} variant="outline">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </Button>
+              </div>
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
