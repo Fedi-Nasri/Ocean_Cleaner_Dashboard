@@ -111,9 +111,13 @@ const VideoFeed = () => {
                     ? 'Processing video with object detection...' 
                     : 'Connecting to robot camera...'}
                 </p>
-                <p className="text-xs opacity-30 mt-4">
-                  URL: {streamUrl}
-                </p>
+                
+                  <img
+                    className="h-full w-full object-cover"
+                    src={streamUrl}
+                    alt="Live stream"
+                  />
+                
               </div>
             </div>
           ) : (
