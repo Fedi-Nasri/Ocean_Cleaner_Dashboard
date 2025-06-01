@@ -1,31 +1,189 @@
-
-import { useState } from "react";
-import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Pause, Play, Maximize, Minimize, Waves } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Maximize, Minimize, Waves } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/Dashboard/DashboardSidebar";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
+import { ref, set } from "firebase/database";
+import { database } from "@/lib/firebase";
+import VideoFeed from "@/components/Dashboard/VideoFeed";
+import Map from "@/components/Dashboard/Map";
 
 const ManualControl = () => {
-  const [speed, setSpeed] = useState(50);
-  const [depth, setDepth] = useState(5);
-  const [isPaused, setIsPaused] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [currentDirection, setCurrentDirection] = useState("stop");
+  const [currentValue, setCurrentValue] = useState(0.0);
+  const [currentRotation, setCurrentRotation] = useState(0.0);
+  const [isAutonomousMode, setIsAutonomousMode] = useState(false);
+  
+  const accelerationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const rotationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Function to update Firebase with robot control data
+  const updateRobotControl = async (direction: string, value: number, rotation: number) => {
+    const controlData = {
+      direction,
+      value,
+      rotation
+    };
+    
+    console.log("Robot Control Update:", controlData);
+    
+    try {
+      await set(ref(database, 'robot_control'), controlData);
+    } catch (error) {
+      console.error("Error updating robot control:", error);
+      toast.error("Failed to update robot control");
+    }
+  };
+
+  // Function to update mode in Firebase
+  const updateMode = async (auto: boolean) => {
+    const modeData = {
+      auto
+    };
+    
+    console.log("Mode Update:", modeData);
+    
+    try {
+      await set(ref(database, 'mode'), modeData);
+      toast.success(`Switched to ${auto ? 'Autonomous' : 'Manual'} mode`);
+    } catch (error) {
+      console.error("Error updating mode:", error);
+      toast.error("Failed to update mode");
+    }
+  };
+
+  // Initialize Firebase structure on component mount
+  useEffect(() => {
+    const initializeFirebaseStructure = async () => {
+      try {
+        await updateRobotControl("stop", 0.0, 0.0);
+        await updateMode(false); // Initialize as manual mode
+        console.log("Firebase robot_control and mode structures initialized");
+      } catch (error) {
+        console.error("Error initializing Firebase structure:", error);
+      }
+    };
+
+    initializeFirebaseStructure();
+  }, []);
+
+  // Handle mode switch
+  const handleModeSwitch = (checked: boolean) => {
+    setIsAutonomousMode(checked);
+    updateMode(checked);
+    
+    // If switching to autonomous mode, stop manual control
+    if (checked) {
+      handleStop();
+    }
+  };
+
+  // Enhanced acceleration function for forward/backward movement with longer duration
+  const accelerateMovement = (targetValue: number, direction: string) => {
+    let currentVal = 0.0;
+    const step = targetValue > 0 ? 0.1 : -0.1; // Smaller steps for smoother acceleration
+    const steps = Math.abs(targetValue / step);
+    let stepCount = 0;
+
+    if (accelerationTimeoutRef.current) {
+      clearInterval(accelerationTimeoutRef.current);
+    }
+
+    const accelerate = () => {
+      if (stepCount < steps) {
+        currentVal += step;
+        stepCount++;
+        setCurrentValue(currentVal);
+        updateRobotControl(direction, currentVal, currentRotation);
+        console.log(`Acceleration step ${stepCount}/${steps}: value=${currentVal.toFixed(1)}`);
+      } else {
+        if (accelerationTimeoutRef.current) {
+          clearInterval(accelerationTimeoutRef.current);
+        }
+        console.log(`Acceleration complete: final value=${currentVal.toFixed(1)}`);
+      }
+    };
+
+    accelerationTimeoutRef.current = setInterval(accelerate, 200); // Increased to 200ms for longer acceleration
+  };
+
+  // Enhanced acceleration function for rotation with longer duration
+  const accelerateRotation = (targetRotation: number) => {
+    let currentRot = 0.0;
+    const step = targetRotation > 0 ? 0.1 : -0.1; // Smaller steps for smoother acceleration
+    const steps = Math.abs(targetRotation / step);
+    let stepCount = 0;
+
+    if (rotationTimeoutRef.current) {
+      clearInterval(rotationTimeoutRef.current);
+    }
+
+    const rotate = () => {
+      if (stepCount < steps) {
+        currentRot += step;
+        stepCount++;
+        setCurrentRotation(currentRot);
+        updateRobotControl(currentDirection, currentValue, currentRot);
+        console.log(`Rotation step ${stepCount}/${steps}: rotation=${currentRot.toFixed(1)}`);
+      } else {
+        if (rotationTimeoutRef.current) {
+          clearInterval(rotationTimeoutRef.current);
+        }
+        console.log(`Rotation complete: final rotation=${currentRot.toFixed(1)}`);
+      }
+    };
+
+    rotationTimeoutRef.current = setInterval(rotate, 200); // Increased to 200ms for longer acceleration
+  };
 
   const handleMove = (direction: string) => {
-    toast.info(`Moving ${direction} at ${speed}% speed`);
+    if (isAutonomousMode) return;
+
+    setCurrentDirection(direction);
+    
+    switch (direction) {
+      case "forward":
+        setCurrentRotation(0.0);
+        accelerateMovement(-2.0, direction);
+        toast.info("Moving forward - accelerating to -2.0 (extended acceleration)");
+        break;
+      case "backward":
+        setCurrentRotation(0.0);
+        accelerateMovement(2.0, direction);
+        toast.info("Moving backward - accelerating to 2.0 (extended acceleration)");
+        break;
+      case "left":
+        setCurrentValue(0.0);
+        accelerateRotation(-2.0);
+        toast.info("Turning left - accelerating to -2.0 (extended acceleration)");
+        break;
+      case "right":
+        setCurrentValue(0.0);
+        accelerateRotation(2.0);
+        toast.info("Turning right - accelerating to 2.0 (extended acceleration)");
+        break;
+    }
   };
 
-  const handleDepthChange = (value: number[]) => {
-    setDepth(value[0]);
-    toast.info(`Setting depth to ${value[0]} meters`);
-  };
+  const handleStop = () => {
+    // Clear any ongoing acceleration
+    if (accelerationTimeoutRef.current) {
+      clearInterval(accelerationTimeoutRef.current);
+    }
+    if (rotationTimeoutRef.current) {
+      clearInterval(rotationTimeoutRef.current);
+    }
 
-  const togglePause = () => {
-    setIsPaused(!isPaused);
-    toast.success(isPaused ? "Resuming manual control" : "Pausing manual control");
+    setCurrentDirection("stop");
+    setCurrentValue(0.0);
+    setCurrentRotation(0.0);
+    updateRobotControl("stop", 0.0, 0.0);
+    toast.info("Robot stopped");
+    console.log("Robot stopped - all values reset to 0.0");
   };
 
   const toggleFullscreen = () => {
@@ -51,10 +209,15 @@ const ManualControl = () => {
                 <Waves className="h-6 w-6 text-ocean-600" />
                 <h1 className="text-xl font-semibold text-ocean-800">Manual Control</h1>
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="icon" onClick={togglePause}>
-                  {isPaused ? <Play className="h-5 w-5" /> : <Pause className="h-5 w-5" />}
-                </Button>
+              <div className="flex gap-2 items-center">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-ocean-800">Manual</span>
+                  <Switch
+                    checked={isAutonomousMode}
+                    onCheckedChange={handleModeSwitch}
+                  />
+                  <span className="text-sm font-medium text-ocean-800">Auto</span>
+                </div>
                 <Button variant="outline" size="icon" onClick={toggleFullscreen}>
                   {isFullscreen ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
                 </Button>
@@ -64,19 +227,7 @@ const ManualControl = () => {
             <main className="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
-                  <Card className="glass-card overflow-hidden">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-ocean-800">Live Video Feed</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="relative h-64 md:h-96 bg-ocean-900/10 rounded-md flex items-center justify-center">
-                        <div className="text-ocean-500">Live Camera Feed</div>
-                        <div className="absolute bottom-4 right-4">
-                          <Button variant="secondary" size="sm">Snapshot</Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <VideoFeed />
 
                   <Card className="glass-card">
                     <CardHeader className="pb-2">
@@ -84,41 +235,12 @@ const ManualControl = () => {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-6">
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-ocean-800">Speed Control</label>
-                          <div className="flex items-center gap-4">
-                            <span className="text-xs text-muted-foreground w-10">{speed}%</span>
-                            <Slider
-                              value={[speed]}
-                              min={0}
-                              max={100}
-                              step={5}
-                              onValueChange={(value) => setSpeed(value[0])}
-                              className="flex-grow"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium text-ocean-800">Depth Control</label>
-                          <div className="flex items-center gap-4">
-                            <span className="text-xs text-muted-foreground w-10">{depth}m</span>
-                            <Slider
-                              value={[depth]}
-                              min={0}
-                              max={20}
-                              step={0.5}
-                              onValueChange={handleDepthChange}
-                              className="flex-grow"
-                            />
-                          </div>
-                        </div>
-
                         <div className="grid grid-cols-3 gap-2">
                           <div></div>
                           <Button 
                             className="bg-ocean-600 hover:bg-ocean-700" 
                             onClick={() => handleMove("forward")}
+                            disabled={isAutonomousMode}
                           >
                             <ArrowUp className="h-4 w-4" />
                           </Button>
@@ -127,16 +249,15 @@ const ManualControl = () => {
                           <Button 
                             className="bg-ocean-600 hover:bg-ocean-700" 
                             onClick={() => handleMove("left")}
+                            disabled={isAutonomousMode}
                           >
                             <ArrowLeft className="h-4 w-4" />
                           </Button>
                           
                           <Button 
                             variant="outline"
-                            onClick={() => {
-                              setIsPaused(true);
-                              toast.info("Robot stopped");
-                            }}
+                            onClick={handleStop}
+                            disabled={isAutonomousMode}
                           >
                             Stop
                           </Button>
@@ -144,6 +265,7 @@ const ManualControl = () => {
                           <Button 
                             className="bg-ocean-600 hover:bg-ocean-700" 
                             onClick={() => handleMove("right")}
+                            disabled={isAutonomousMode}
                           >
                             <ArrowRight className="h-4 w-4" />
                           </Button>
@@ -152,6 +274,7 @@ const ManualControl = () => {
                           <Button 
                             className="bg-ocean-600 hover:bg-ocean-700" 
                             onClick={() => handleMove("backward")}
+                            disabled={isAutonomousMode}
                           >
                             <ArrowDown className="h-4 w-4" />
                           </Button>
@@ -165,13 +288,27 @@ const ManualControl = () => {
                 <div className="lg:col-span-1 space-y-6">
                   <Card className="glass-card">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-ocean-800">Status</CardTitle>
+                      <CardTitle className="text-ocean-800">Robot Status</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
                         <div className="flex justify-between">
                           <span className="text-sm text-muted-foreground">Current Mode:</span>
-                          <span className="text-sm font-medium text-ocean-800">Manual</span>
+                          <span className="text-sm font-medium text-ocean-800">
+                            {isAutonomousMode ? "Autonomous" : "Manual"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Direction:</span>
+                          <span className="text-sm font-medium text-ocean-800 capitalize">{currentDirection}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Value:</span>
+                          <span className="text-sm font-medium text-ocean-800">{currentValue.toFixed(1)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Rotation:</span>
+                          <span className="text-sm font-medium text-ocean-800">{currentRotation.toFixed(1)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-sm text-muted-foreground">Connection:</span>
@@ -189,16 +326,7 @@ const ManualControl = () => {
                     </CardContent>
                   </Card>
 
-                  <Card className="glass-card">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-ocean-800">GPS Coordinates</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="h-64 bg-ocean-100 rounded-md flex items-center justify-center">
-                        Map View
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <Map />
                 </div>
               </div>
             </main>

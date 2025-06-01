@@ -1,45 +1,107 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/Dashboard/DashboardSidebar";
-import { Waves, Calendar } from "lucide-react";
+import { Waves, Calendar, AlertTriangle, Loader2 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
 import { LineChart, BarChart, PieChart, ResponsiveContainer, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Bar, Pie, Cell } from "recharts";
+import { 
+  listenToDailySensorData, 
+  listenToWeeklySensorData, 
+  listenToWasteTypeData,
+  SensorReading,
+  WasteTypeData
+} from "@/services/statisticsService";
 
-// Sample data for charts
-const dailyData = [
-  { time: '00:00', temperature: 18.2, waterQuality: 91, batteryLevel: 85, wasteCollected: 0.2 },
-  { time: '04:00', temperature: 17.8, waterQuality: 92, batteryLevel: 82, wasteCollected: 1.5 },
-  { time: '08:00', temperature: 18.5, waterQuality: 90, batteryLevel: 78, wasteCollected: 3.7 },
-  { time: '12:00', temperature: 19.2, waterQuality: 88, batteryLevel: 72, batteryLevel2: 74, batteryLevel3: 75, wasteCollected: 7.2 },
-  { time: '16:00', temperature: 19.7, waterQuality: 87, batteryLevel: 66, batteryLevel2: 68, batteryLevel3: 69, wasteCollected: 9.8 },
-  { time: '20:00', temperature: 19.1, waterQuality: 89, batteryLevel: 60, batteryLevel2: 62, batteryLevel3: 63, wasteCollected: 11.3 },
-  { time: '24:00', temperature: 18.7, waterQuality: 90, batteryLevel: 56, batteryLevel2: 58, batteryLevel3: 59, wasteCollected: 12.4 },
-];
-
-const weeklyData = [
-  { day: 'Monday', temperature: 18.5, waterQuality: 90, wasteCollected: 12.4 },
-  { day: 'Tuesday', temperature: 18.7, waterQuality: 91, wasteCollected: 13.1 },
-  { day: 'Wednesday', temperature: 19.2, waterQuality: 89, wasteCollected: 10.8 },
-  { day: 'Thursday', temperature: 19.0, waterQuality: 88, wasteCollected: 11.5 },
-  { day: 'Friday', temperature: 18.8, waterQuality: 90, wasteCollected: 14.2 },
-  { day: 'Saturday', temperature: 19.3, waterQuality: 92, wasteCollected: 15.7 },
-  { day: 'Sunday', temperature: 19.1, waterQuality: 91, wasteCollected: 13.9 },
-];
-
-const wasteTypeData = [
-  { name: 'Plastics', value: 45 },
-  { name: 'Metals', value: 15 },
-  { name: 'Organics', value: 25 },
-  { name: 'Other', value: 15 },
-];
-
+// Define chart colors
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 const Statistics = () => {
   const [timeRange, setTimeRange] = useState('daily');
+  const [dailyData, setDailyData] = useState<SensorReading[]>([]);
+  const [weeklyData, setWeeklyData] = useState<SensorReading[]>([]);
+  const [wasteTypeData, setWasteTypeData] = useState<WasteTypeData[]>([]);
+  const [loading, setLoading] = useState({
+    daily: true,
+    weekly: true,
+    wasteType: true
+  });
+  const [error, setError] = useState<string | null>(null);
+
+  // Set up Firebase listeners
+  useEffect(() => {
+    // Set initial loading states
+    setLoading({
+      daily: true,
+      weekly: true,
+      wasteType: true
+    });
+    setError(null);
+
+    // Listen for daily sensor data
+    const unsubscribeDaily = listenToDailySensorData(
+      (data) => {
+        setDailyData(data);
+        setLoading(prev => ({ ...prev, daily: false }));
+      },
+      (error) => {
+        console.error("Error in daily sensor data:", error);
+        setError("Failed to load daily sensor data. Please try again later.");
+        setLoading(prev => ({ ...prev, daily: false }));
+      }
+    );
+
+    // Listen for weekly sensor data
+    const unsubscribeWeekly = listenToWeeklySensorData(
+      (data) => {
+        setWeeklyData(data);
+        setLoading(prev => ({ ...prev, weekly: false }));
+      },
+      (error) => {
+        console.error("Error in weekly sensor data:", error);
+        setError("Failed to load weekly sensor data. Please try again later.");
+        setLoading(prev => ({ ...prev, weekly: false }));
+      }
+    );
+
+    // Listen for waste type data
+    const unsubscribeWasteType = listenToWasteTypeData(
+      (data) => {
+        setWasteTypeData(data);
+        setLoading(prev => ({ ...prev, wasteType: false }));
+      },
+      (error) => {
+        console.error("Error in waste type data:", error);
+        setError("Failed to load waste type data. Please try again later.");
+        setLoading(prev => ({ ...prev, wasteType: false }));
+      }
+    );
+
+    // Notify user that real-time data is active
+    toast.info("Connected to real-time data stream", {
+      description: "Charts will update automatically as new data arrives"
+    });
+
+    // Clean up listeners on unmount
+    return () => {
+      unsubscribeDaily();
+      unsubscribeWeekly();
+      unsubscribeWasteType();
+    };
+  }, []);
+
+  // Handle empty data state
+  const hasNoData = (
+    (timeRange === 'daily' && dailyData.length === 0) || 
+    (timeRange === 'weekly' && weeklyData.length === 0)
+  );
+
+  // Get the current data based on time range
+  const currentData = timeRange === 'daily' ? dailyData : weeklyData;
 
   return (
     <SidebarProvider>
@@ -59,6 +121,13 @@ const Statistics = () => {
             </header>
 
             <main className="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full">
+              {error && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              
               <Tabs defaultValue="sensors" className="w-full">
                 <div className="flex justify-between items-center mb-4">
                   <TabsList>
@@ -91,25 +160,46 @@ const Statistics = () => {
                       <CardTitle>Temperature Over Time</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ResponsiveContainer width="100%" height={300}>
-                        <LineChart
-                          data={timeRange === 'daily' ? dailyData : weeklyData}
-                          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey={timeRange === 'daily' ? 'time' : 'day'} />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Line 
-                            type="monotone" 
-                            dataKey="temperature" 
-                            stroke="#0EA5E9" 
-                            name="Water Temperature (°C)"
-                            activeDot={{ r: 8 }} 
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
+                      {loading.daily && timeRange === 'daily' && (
+                        <div className="flex items-center justify-center h-[300px]">
+                          <Loader2 className="h-8 w-8 animate-spin text-ocean-600" />
+                          <span className="ml-2">Loading temperature data...</span>
+                        </div>
+                      )}
+                      {loading.weekly && timeRange === 'weekly' && (
+                        <div className="flex items-center justify-center h-[300px]">
+                          <Loader2 className="h-8 w-8 animate-spin text-ocean-600" />
+                          <span className="ml-2">Loading temperature data...</span>
+                        </div>
+                      )}
+                      {!loading[timeRange === 'daily' ? 'daily' : 'weekly'] && (
+                        hasNoData ? (
+                          <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
+                            <AlertTriangle className="h-8 w-8 mb-2" />
+                            <p>No temperature data available for this time period</p>
+                          </div>
+                        ) : (
+                          <ResponsiveContainer width="100%" height={300}>
+                            <LineChart
+                              data={currentData}
+                              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey={timeRange === 'daily' ? 'time' : 'day'} />
+                              <YAxis />
+                              <Tooltip />
+                              <Legend />
+                              <Line 
+                                type="monotone" 
+                                dataKey="temperature" 
+                                stroke="#0EA5E9" 
+                                name="Water Temperature (°C)"
+                                activeDot={{ r: 8 }} 
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        )
+                      )}
                     </CardContent>
                   </Card>
 
@@ -118,25 +208,37 @@ const Statistics = () => {
                       <CardTitle>Water Quality Over Time</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ResponsiveContainer width="100%" height={300}>
-                        <LineChart
-                          data={timeRange === 'daily' ? dailyData : weeklyData}
-                          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey={timeRange === 'daily' ? 'time' : 'day'} />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Line 
-                            type="monotone" 
-                            dataKey="waterQuality" 
-                            stroke="#3B82F6" 
-                            name="Water Quality (%)"
-                            activeDot={{ r: 8 }} 
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
+                      {loading[timeRange === 'daily' ? 'daily' : 'weekly'] ? (
+                        <div className="flex items-center justify-center h-[300px]">
+                          <Loader2 className="h-8 w-8 animate-spin text-ocean-600" />
+                          <span className="ml-2">Loading water quality data...</span>
+                        </div>
+                      ) : hasNoData ? (
+                        <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
+                          <AlertTriangle className="h-8 w-8 mb-2" />
+                          <p>No water quality data available for this time period</p>
+                        </div>
+                      ) : (
+                        <ResponsiveContainer width="100%" height={300}>
+                          <LineChart
+                            data={currentData}
+                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey={timeRange === 'daily' ? 'time' : 'day'} />
+                            <YAxis />
+                            <Tooltip />
+                            <Legend />
+                            <Line 
+                              type="monotone" 
+                              dataKey="waterQuality" 
+                              stroke="#3B82F6" 
+                              name="Water Quality (%)"
+                              activeDot={{ r: 8 }} 
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -147,44 +249,56 @@ const Statistics = () => {
                       <CardTitle>Battery Discharge Pattern</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ResponsiveContainer width="100%" height={400}>
-                        <LineChart
-                          data={dailyData}
-                          margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="time" />
-                          <YAxis domain={[50, 100]} />
-                          <Tooltip />
-                          <Legend />
-                          <Line 
-                            type="monotone" 
-                            dataKey="batteryLevel" 
-                            stroke="#10B981" 
-                            name="Cell 1 (%)"
-                            strokeWidth={2}
-                            activeDot={{ r: 8 }} 
-                          />
-                          <Line 
-                            type="monotone" 
-                            dataKey="batteryLevel2" 
-                            stroke="#059669" 
-                            name="Cell 2 (%)"
-                            strokeWidth={2}
-                            activeDot={{ r: 8 }}
-                            connectNulls 
-                          />
-                          <Line 
-                            type="monotone" 
-                            dataKey="batteryLevel3" 
-                            stroke="#047857" 
-                            name="Cell 3 (%)"
-                            strokeWidth={2}
-                            activeDot={{ r: 8 }}
-                            connectNulls 
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
+                      {loading.daily ? (
+                        <div className="flex items-center justify-center h-[400px]">
+                          <Loader2 className="h-8 w-8 animate-spin text-ocean-600" />
+                          <span className="ml-2">Loading battery data...</span>
+                        </div>
+                      ) : dailyData.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
+                          <AlertTriangle className="h-8 w-8 mb-2" />
+                          <p>No battery data available</p>
+                        </div>
+                      ) : (
+                        <ResponsiveContainer width="100%" height={400}>
+                          <LineChart
+                            data={dailyData}
+                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="time" />
+                            <YAxis domain={[50, 100]} />
+                            <Tooltip />
+                            <Legend />
+                            <Line 
+                              type="monotone" 
+                              dataKey="batteryLevel" 
+                              stroke="#10B981" 
+                              name="Cell 1 (%)"
+                              strokeWidth={2}
+                              activeDot={{ r: 8 }} 
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="batteryLevel2" 
+                              stroke="#059669" 
+                              name="Cell 2 (%)"
+                              strokeWidth={2}
+                              activeDot={{ r: 8 }}
+                              connectNulls 
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="batteryLevel3" 
+                              stroke="#047857" 
+                              name="Cell 3 (%)"
+                              strokeWidth={2}
+                              activeDot={{ r: 8 }}
+                              connectNulls 
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -196,23 +310,35 @@ const Statistics = () => {
                         <CardTitle>Waste Collected Over Time</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                          <BarChart
-                            data={timeRange === 'daily' ? dailyData : weeklyData}
-                            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                          >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey={timeRange === 'daily' ? 'time' : 'day'} />
-                            <YAxis />
-                            <Tooltip />
-                            <Legend />
-                            <Bar 
-                              dataKey="wasteCollected" 
-                              fill="#22C55E" 
-                              name="Waste Collected (kg)"
-                            />
-                          </BarChart>
-                        </ResponsiveContainer>
+                        {loading[timeRange === 'daily' ? 'daily' : 'weekly'] ? (
+                          <div className="flex items-center justify-center h-[300px]">
+                            <Loader2 className="h-8 w-8 animate-spin text-ocean-600" />
+                            <span className="ml-2">Loading waste collection data...</span>
+                          </div>
+                        ) : hasNoData ? (
+                          <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
+                            <AlertTriangle className="h-8 w-8 mb-2" />
+                            <p>No waste collection data available for this time period</p>
+                          </div>
+                        ) : (
+                          <ResponsiveContainer width="100%" height={300}>
+                            <BarChart
+                              data={currentData}
+                              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey={timeRange === 'daily' ? 'time' : 'day'} />
+                              <YAxis />
+                              <Tooltip />
+                              <Legend />
+                              <Bar 
+                                dataKey="wasteCollected" 
+                                fill="#22C55E" 
+                                name="Waste Collected (kg)"
+                              />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        )}
                       </CardContent>
                     </Card>
 
@@ -221,25 +347,37 @@ const Statistics = () => {
                         <CardTitle>Waste Type Distribution</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <ResponsiveContainer width="100%" height={300}>
-                          <PieChart>
-                            <Pie
-                              data={wasteTypeData}
-                              cx="50%"
-                              cy="50%"
-                              labelLine={false}
-                              outerRadius={100}
-                              fill="#8884d8"
-                              dataKey="value"
-                              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                            >
-                              {wasteTypeData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                              ))}
-                            </Pie>
-                            <Tooltip />
-                          </PieChart>
-                        </ResponsiveContainer>
+                        {loading.wasteType ? (
+                          <div className="flex items-center justify-center h-[300px]">
+                            <Loader2 className="h-8 w-8 animate-spin text-ocean-600" />
+                            <span className="ml-2">Loading waste type data...</span>
+                          </div>
+                        ) : wasteTypeData.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
+                            <AlertTriangle className="h-8 w-8 mb-2" />
+                            <p>No waste type data available</p>
+                          </div>
+                        ) : (
+                          <ResponsiveContainer width="100%" height={300}>
+                            <PieChart>
+                              <Pie
+                                data={wasteTypeData}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                outerRadius={100}
+                                fill="#8884d8"
+                                dataKey="value"
+                                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                              >
+                                {wasteTypeData.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                ))}
+                              </Pie>
+                              <Tooltip />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        )}
                       </CardContent>
                     </Card>
                   </div>

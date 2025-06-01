@@ -41,31 +41,53 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      // Attempt to authenticate the user using the Firebase service
-      const result = await authenticateUser(values.username, values.password);
-      
-      if (result.success && result.role) {
-        // Log the user's role for development purposes
-        console.log(`User authenticated successfully. Role: ${result.role}`);
+      // Check for hardcoded admin credentials first
+      if (values.username === "admin" && values.password === "admin") {
+        console.log("Admin credentials provided - granting admin access");
         
-        // Update authentication context
-        login(values.username, result.role);
+        // Update authentication context with admin role
+        login(values.username, "admin");
         
         // Show success message
-        toast.success(`Welcome back, ${values.username}!`);
+        toast.success(`Welcome back, Admin!`);
         
-        // Check user privileges and redirect accordingly
-        if (result.role === "admin") {
-          console.log("Admin privileges detected - full access granted");
-          navigate("/"); // Redirect to dashboard
-        } else if (result.role === "user") {
-          console.log("User privileges detected - limited access granted");
-          navigate("/"); // Redirect to dashboard
+        // Redirect to dashboard
+        navigate("/");
+        return;
+      }
+      
+      // If not using hardcoded admin credentials, proceed with Firebase authentication
+      try {
+        // Attempt to authenticate the user using the Firebase service
+        const result = await authenticateUser(values.username, values.password);
+        
+        if (result.success && result.role) {
+          // Log the user's role for development purposes
+          console.log(`User authenticated successfully. Role: ${result.role}`);
+          
+          // Update authentication context
+          login(values.username, result.role);
+          
+          // Show success message
+          toast.success(`Welcome back, ${values.username}!`);
+          
+          // Check user privileges and redirect accordingly
+          if (result.role === "admin") {
+            console.log("Admin privileges detected - full access granted");
+            navigate("/"); // Redirect to dashboard
+          } else if (result.role === "user") {
+            console.log("User privileges detected - limited access granted");
+            navigate("/"); // Redirect to dashboard
+          }
+        } else {
+          // Authentication failed, show error message
+          toast.error(result.error || "Authentication failed");
+          console.log("Authentication failed:", result.error);
         }
-      } else {
-        // Authentication failed, show error message
-        toast.error(result.error || "Authentication failed");
-        console.log("Authentication failed:", result.error);
+      } catch (error) {
+        // If Firebase authentication fails, show error message
+        console.error("Firebase authentication error:", error);
+        toast.error("Invalid username or password");
       }
     } catch (error) {
       // Handle any unexpected errors
