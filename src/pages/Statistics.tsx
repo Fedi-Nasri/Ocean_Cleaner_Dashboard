@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/Dashboard/DashboardSidebar";
-import { Waves, Calendar, AlertTriangle, Loader2 } from "lucide-react";
+import { Waves, Calendar, AlertTriangle, Loader2, Download } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -30,7 +29,64 @@ const Statistics = () => {
     weekly: true,
     wasteType: true
   });
+  const [downloadLoading, setDownloadLoading] = useState({
+    objectDetection: false,
+    mission: false,
+    original: false
+  });
   const [error, setError] = useState<string | null>(null);
+
+  // Download function for datasets
+  const downloadDataset = async (datasetType: 'object-detection' | 'mission' | 'original') => {
+    const loadingKey = datasetType === 'object-detection' ? 'objectDetection' : datasetType;
+    
+    setDownloadLoading(prev => ({ ...prev, [loadingKey]: true }));
+    
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/download-dataset/${datasetType}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/zip',
+        },
+        credentials: 'include',
+        mode: 'cors'
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to download ${datasetType} dataset: ${response.statusText}`);
+      }
+
+      // Get the blob data
+      const blob = await response.blob();
+      
+      // Get filename from Content-Disposition header or use default
+      const contentDisposition = response.headers.get('Content-Disposition');
+      const filename = contentDisposition
+        ? contentDisposition.split('filename=')[1].replace(/"/g, '')
+        : `${datasetType}_dataset.zip`;
+      
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary anchor element and trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success(`${datasetType} dataset downloaded successfully`);
+    } catch (error) {
+      console.error(`Error downloading ${datasetType} dataset:`, error);
+      toast.error(`Failed to download ${datasetType} dataset. Please try again.`);
+    } finally {
+      setDownloadLoading(prev => ({ ...prev, [loadingKey]: false }));
+    }
+  };
 
   // Set up Firebase listeners
   useEffect(() => {
@@ -127,6 +183,58 @@ const Statistics = () => {
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
+
+              {/* Download Dataset Section */}
+              <Card className="glass-card mb-6">
+                <CardHeader>
+                  <CardTitle>Download Datasets</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Button
+                      onClick={() => downloadDataset('object-detection')}
+                      disabled={downloadLoading.objectDetection}
+                      className="flex items-center gap-2"
+                      variant="outline"
+                    >
+                      {downloadLoading.objectDetection ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Download className="h-4 w-4" />
+                      )}
+                      {downloadLoading.objectDetection ? 'Downloading...' : 'Object Detection Model'}
+                    </Button>
+                    
+                    <Button
+                      onClick={() => downloadDataset('mission')}
+                      disabled={downloadLoading.mission}
+                      className="flex items-center gap-2"
+                      variant="outline"
+                    >
+                      {downloadLoading.mission ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Download className="h-4 w-4" />
+                      )}
+                      {downloadLoading.mission ? 'Downloading...' : 'Mission Dataset'}
+                    </Button>
+                    
+                    <Button
+                      onClick={() => downloadDataset('original')}
+                      disabled={downloadLoading.original}
+                      className="flex items-center gap-2"
+                      variant="outline"
+                    >
+                      {downloadLoading.original ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Download className="h-4 w-4" />
+                      )}
+                      {downloadLoading.original ? 'Downloading...' : 'Original Dataset'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
               
               <Tabs defaultValue="sensors" className="w-full">
                 <div className="flex justify-between items-center mb-4">
