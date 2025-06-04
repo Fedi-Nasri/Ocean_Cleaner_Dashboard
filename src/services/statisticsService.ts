@@ -104,8 +104,10 @@ export const listenToWasteTypeData = (
     (snapshot) => {
       if (snapshot.exists()) {
         const rawData = snapshot.val();
-        // Convert Firebase object to array
-        const dataArray: WasteTypeData[] = Object.values(rawData);
+        // Convert {metal: 8, plastic: 49, other: 9} to [{name: "metal", value: 8}, ...]
+        const dataArray: WasteTypeData[] = Object.entries(rawData).map(
+          ([name, value]) => ({ name, value: typeof value === "number" ? value : Number(value) })
+        );
         callback(dataArray);
       } else {
         callback([]);

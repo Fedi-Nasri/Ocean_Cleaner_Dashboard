@@ -321,7 +321,7 @@ const Statistics = () => {
                           <Loader2 className="h-8 w-8 animate-spin text-ocean-600" />
                           <span className="ml-2">Loading water quality data...</span>
                         </div>
-                      ) : hasNoData ? (
+                      ) : (hasNoData || currentData.length === 0) ? (
                         <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
                           <AlertTriangle className="h-8 w-8 mb-2" />
                           <p>No water quality data available for this time period</p>
@@ -436,13 +436,14 @@ const Statistics = () => {
                             >
                               <CartesianGrid strokeDasharray="3 3" />
                               <XAxis dataKey={timeRange === 'daily' ? 'time' : 'day'} />
-                              <YAxis />
-                              <Tooltip />
+                              <YAxis allowDecimals={false} tickFormatter={value => Math.round(value)} />
+                              <Tooltip formatter={value => Math.round(value)} />
                               <Legend />
                               <Bar 
                                 dataKey="wasteCollected" 
                                 fill="#22C55E" 
-                                name="Waste Collected (kg)"
+                                name="Number of Waste Collected"
+                                // Optionally, you can add a label formatter here as well
                               />
                             </BarChart>
                           </ResponsiveContainer>

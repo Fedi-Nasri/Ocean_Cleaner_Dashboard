@@ -129,7 +129,7 @@ const MapNavigation = () => {
           <div className="p-4 flex-1">
             <div className="h-full border border-gray-300 rounded-lg overflow-hidden">
               <MapContainer
-                center={[51.505, -0.09]}
+                center={[36.8081, 10.1817]}
                 zoom={13}
                 style={{ height: "100%", width: "100%" }}
                 className="h-[calc(100vh-10rem)]"

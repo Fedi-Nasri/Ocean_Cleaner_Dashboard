@@ -16,7 +16,7 @@ const ManualControl = () => {
   const [currentDirection, setCurrentDirection] = useState("stop");
   const [currentValue, setCurrentValue] = useState(0.0);
   const [currentRotation, setCurrentRotation] = useState(0.0);
-  const [isAutonomousMode, setIsAutonomousMode] = useState(false);
+  const [isAutonomousMode, setIsAutonomousMode] = useState(true);
   
   const accelerationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const rotationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
