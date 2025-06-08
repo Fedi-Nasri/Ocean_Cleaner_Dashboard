@@ -159,6 +159,58 @@ const Statistics = () => {
   // Get the current data based on time range
   const currentData = timeRange === 'daily' ? dailyData : weeklyData;
 
+  // Converts an array of objects to CSV string
+  function arrayToCSV(data: any[]): string {
+    if (!data.length) return '';
+    const keys = Object.keys(data[0]);
+    const csvRows = [
+      keys.join(','), // header row
+      ...data.map(row => keys.map(k => JSON.stringify(row[k] ?? '')).join(','))
+    ];
+    return csvRows.join('\n');
+  }
+
+  const handleExportData = async () => {
+    try {
+      // Fetch all data from Firebase (daily, weekly, wasteType)
+      const [daily, weekly, wasteType] = await Promise.all([
+        new Promise<any[]>(resolve => listenToDailySensorData(resolve, () => resolve([]))) as Promise<any[]>,
+        new Promise<any[]>(resolve => listenToWeeklySensorData(resolve, () => resolve([]))) as Promise<any[]>,
+        new Promise<any[]>(resolve => listenToWasteTypeData(resolve, () => resolve([]))) as Promise<any[]>,
+      ]);
+
+      // Prepare CSVs
+      const dailyCSV = arrayToCSV(daily);
+      const weeklyCSV = arrayToCSV(weekly);
+      const wasteTypeCSV = arrayToCSV(wasteType);
+
+      // Combine into one CSV file (or download separately)
+      const blob = new Blob(
+        [
+          '--- Daily Data ---\n', dailyCSV, '\n\n',
+          '--- Weekly Data ---\n', weeklyCSV, '\n\n',
+          '--- Waste Type Data ---\n', wasteTypeCSV
+        ],
+        { type: 'text/csv' }
+      );
+      const url = URL.createObjectURL(blob);
+
+      // Download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `statistics_export_${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success('Data exported as CSV!');
+    } catch (err) {
+      toast.error('Failed to export data.');
+      console.error(err);
+    }
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -172,7 +224,7 @@ const Statistics = () => {
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-ocean-600" />
-                <Button variant="outline" size="sm">Export Data</Button>
+                <Button variant="outline" size="sm" onClick={handleExportData}>Download Data CSV</Button>
               </div>
             </header>
 
