@@ -103,6 +103,47 @@ Computer Engineering Student
 
 - 🔗 LinkedIn: [https://www.linkedin.com/in/fedinasri](https://www.linkedin.com/in/fedinasri)
 - 📧 Email: [fedinasri.fsb@gmail.com](mailto:fedinasri.fsb@gmail.com)
-This dashboard is part of a comprehensive autonomous ocean-cleaning system developed as an end-to-end engineering project.
 
-## 📸 Screenshots
+This dashboard is part of a comprehensive autonomous ocean-cleaning system developed as an end-to-end engineering project, conducted within the scope of an end-of-study project (PFE).
+
+
+## 📸 Dashboard Screenshots
+### Login 
+![login](docs/login.png)
+### Main System Overview
+Provides a high-level view of the robot’s operational state, key metrics, and live system indicators.
+
+![Main Dashboard](docs/main_dashboard.png)
+
+| Extended View1 | Extended View2 |
+|---------------|------------------|
+| ![Main Dashboard – Extended View1](docs/main_dashboard2.png) | ![Main Dashboard – Extended View2](docs/main_dashboard3.png) |
+
+
+---
+
+### Map & Navigation
+Real-time geographical tracking of the robot, including position, movement path, and operational zones.
+
+![Maps and Navigation](docs/maps_and_navigation_page.png)
+
+---
+
+### Data Analytics & Statistics
+Visualization of sensor data, performance metrics, and behavioral indicators for analysis and evaluation.
+
+![Statistics Page](docs/statictics_page.png)
+
+---
+
+### Manual Control Interface
+Human-in-the-loop control interface enabling direct intervention and safe operation when required.
+
+![Manual Control Page](docs/manule_control_page.png)
+
+---
+
+### System Configuration
+Dashboard configuration and system settings used to adapt behavior, visualization, and integrations.
+
+![Settings Page](docs/setting_page.png)

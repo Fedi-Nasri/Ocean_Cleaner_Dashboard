@@ -8,8 +8,8 @@ import { toast } from "sonner";
 
 // Stream URLs - these would be your actual Flask server endpoints
 const STREAM_URLS = {
-  normal: "http://10.0.2.15:8080/video_feed",
-  ai: "http://10.0.2.15:5000/video_feed"
+  normal: "http://192.168.0.103:8080/video_feed",
+  ai: "http://192.168.0.103:5000/video_feed"
 };
 
 const VideoFeed = () => {
